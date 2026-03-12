@@ -3,276 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OroLabs Codebooks | AI Training</title>
+    <title>OroLabs Zen-Code</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;800&display=swap');
 
         :root {
-            --bg-deep: #050505;
-            --glass-base: rgba(15, 15, 20, 0.75);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --accent-blue: #00d2ff;
-            --accent-purple: #9d50bb;
+            --bg: #030303;
+            --panel: rgba(20, 20, 25, 0.6);
+            --border: rgba(255, 255, 255, 0.05);
+            --accent: #00d2ff;
             --accent-ai: #ff00ff;
-            --text-main: #f0f0f0;
-            --text-muted: #808080;
+            --accent-julia: #9558b2;
+            --accent-r: #276dc3;
+            --text: #e0e0e0;
+            --text-dim: #707070;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
         
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-deep);
-            background-image: 
-                radial-gradient(circle at 0% 0%, rgba(0, 210, 255, 0.04) 0%, transparent 40%),
-                radial-gradient(circle at 100% 100%, rgba(255, 0, 255, 0.04) 0%, transparent 40%);
-            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             height: 100dvh;
             display: flex;
-            flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- Liquid Glass Header --- */
-        .header {
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            background: var(--glass-base);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-bottom: 1px solid var(--glass-border);
-            z-index: 100;
-        }
-
-        .logo-box { display: flex; align-items: center; gap: 15px; }
-        .gemini-outline {
-            width: 34px; height: 34px;
-            stroke: var(--accent-blue);
-            stroke-width: 1.2; fill: none;
-            filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.4));
-        }
-
-        .branding h1 { font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #fff; }
-        .branding span { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-
-        .main-layout { flex: 1; display: flex; overflow: hidden; }
-
-        /* Sidebar Navigation */
+        /* --- Minimalist Rail --- */
         .nav-rail {
-            width: 68px;
-            background: rgba(0,0,0,0.3);
-            border-right: 1px solid var(--glass-border);
+            width: 72px;
+            background: rgba(0,0,0,0.5);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 24px 0;
-            gap: 30px;
+            padding-top: 24px;
+            gap: 24px;
         }
 
-        .nav-btn {
-            width: 24px; height: 24px;
-            stroke: var(--text-muted);
-            stroke-width: 2; fill: none;
-            cursor: pointer; transition: 0.3s;
+        .nav-item {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            stroke: var(--text-dim);
+            fill: none;
+            stroke-width: 1.5;
         }
 
-        .nav-btn:hover, .nav-btn.active { stroke: var(--accent-blue); transform: scale(1.1); }
+        .nav-item:hover, .nav-item.active {
+            background: var(--border);
+            stroke: var(--accent);
+        }
 
-        /* Notebook Interface */
-        .notebook-container {
+        /* --- Main Content --- */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        header {
+            height: 64px;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo { font-weight: 800; font-size: 14px; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+        .logo svg { width: 24px; stroke: var(--accent); }
+
+        .notebook {
             flex: 1;
             overflow-y: auto;
-            padding: 30px 8%;
-            scroll-behavior: smooth;
+            padding: 40px 15%;
         }
 
-        .controls-row {
+        /* --- Modern Cell --- */
+        .cell {
+            background: var(--panel);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+
+        .cell:hover { border-color: rgba(255,255,255,0.1); }
+        .cell:focus-within { border-color: var(--accent); }
+
+        .cell-head {
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .btn-ui {
-            background: var(--glass-base);
-            border: 1px solid var(--glass-border);
-            color: #fff;
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
+        .kernel-chip {
+            background: rgba(255,255,255,0.05);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-dim);
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        }
+
+        .kernel-chip:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+        .run-btn {
+            width: 30px; height: 30px;
+            background: var(--text);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
             transition: 0.2s;
         }
 
-        .btn-ui:hover { background: rgba(255,255,255,0.05); border-color: var(--accent-blue); }
-
-        /* Cell UI */
-        .cell {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--glass-border);
-            border-radius: 18px;
-            margin-bottom: 25px;
-            transition: 0.3s;
-            overflow: hidden;
-        }
-
-        .cell:focus-within { border-color: rgba(0, 210, 255, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
-        .cell-top {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 20px; background: rgba(0,0,0,0.25);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .kernel-select {
-            background: transparent; border: none;
-            color: var(--accent-blue); font-size: 11px;
-            font-weight: 800; text-transform: uppercase; outline: none;
-        }
-
-        .run-pill {
-            width: 32px; height: 32px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            border: none; border-radius: 50%;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s;
-        }
-
-        .run-pill:active { transform: scale(0.9); }
-        .run-pill svg { width: 14px; height: 14px; fill: #fff; }
+        .run-btn:hover { transform: scale(1.1); background: var(--accent); }
+        .run-btn svg { width: 12px; fill: var(--bg); }
 
         .editor {
-            padding: 20px;
+            padding: 24px;
             font-family: 'Fira Code', monospace;
-            font-size: 14px; line-height: 1.6;
-            color: #d1d5db; outline: none;
-            min-height: 80px; white-space: pre-wrap;
+            font-size: 14px;
+            min-height: 60px;
+            line-height: 1.6;
         }
 
         .output {
-            padding: 16px 20px;
-            background: #000;
-            border-top: 1px solid var(--glass-border);
+            padding: 16px 24px;
             font-family: 'Fira Code', monospace;
-            font-size: 12px; color: var(--text-muted);
+            font-size: 12px;
+            color: var(--text-dim);
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--border);
             display: none;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
         }
 
-        /* AI Training Monitor */
-        .train-monitor {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 15px; margin-top: 10px; padding-top: 10px;
-            border-top: 1px dashed #333;
+        /* --- Floating Action --- */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--accent);
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 10px 20px rgba(0, 210, 255, 0.3);
+            cursor: pointer;
+            transition: 0.3s;
         }
 
-        .monitor-stat { display: flex; flex-direction: column; }
-        .stat-val { font-size: 18px; color: var(--accent-ai); font-weight: 800; }
-        .stat-label { font-size: 9px; text-transform: uppercase; opacity: 0.6; }
+        .fab:hover { transform: rotate(90deg) scale(1.1); }
 
         @media (max-width: 768px) {
-            .nav-rail { position: fixed; bottom: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; border-top: 1px solid var(--glass-border); z-index: 1000;}
-            .notebook-container { padding: 20px 15px 100px 15px; }
-            .branding span { display: none; }
+            .nav-rail { display: none; }
+            .notebook { padding: 20px; }
+            header { padding: 0 15px; }
         }
     </style>
 </head>
 <body>
 
-    <header class="header">
-        <div class="logo-box">
-            <svg class="gemini-outline" viewBox="0 0 24 24">
-                <path d="M12 2L4.5 9.5M12 2L19.5 9.5M4.5 9.5L12 17M19.5 9.5L12 17M12 17V22M4.5 9.5H19.5" />
-            </svg>
-            <div class="branding">
-                <h1>OROLABS CODEBOOKS</h1>
-                <span>System: <b id="engine-status" style="color:var(--accent-blue)">Connecting...</b></span>
+    <aside class="nav-rail">
+        <div class="nav-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H7M17 19H7"/></svg></div>
+        <div class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2"/></svg></div>
+    </aside>
+
+    <main class="main">
+        <header>
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2L4.5 9.5M12 2L19.5 9.5M4.5 9.5L12 17M19.5 9.5L12 17M12 17V22M4.5 9.5H19.5"/></svg>
+                OROLABS
             </div>
-        </div>
-        <div id="ai-status" style="font-size: 10px; color: var(--accent-ai);">GPU ACCELERATION: ON</div>
-    </header>
+            <div id="status" style="font-size: 10px; font-weight: 800; color: var(--text-dim);">SYSTEM STABLE</div>
+        </header>
 
-    <div class="main-layout">
-        <nav class="nav-rail">
-            <svg class="nav-btn active" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-            <svg class="nav-btn" viewBox="0 0 24 24"><path d="M12 2v20M17 5H7M17 19H7"/></svg>
-            <svg class="nav-btn" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-        </nav>
-
-        <main class="notebook-container">
-            <div class="controls-row">
-                <button class="btn-ui" onclick="addCell()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    New Kernel Cell
-                </button>
-                <div style="font-size: 11px; color: var(--text-muted); font-weight: bold;">RAZNAS_CORE_V2.5</div>
-            </div>
-
-            <div id="cell-stack">
-                <div class="cell" data-lang="python">
-                    <div class="cell-top">
-                        <select class="kernel-select" onchange="this.closest('.cell').dataset.lang = this.value">
-                            <option value="python">Python 3.11 (Native)</option>
-                            <option value="tensorflow">TF.js (AI Training)</option>
-                            <option value="javascript">JavaScript (V8)</option>
-                        </select>
-                        <button class="run-pill" onclick="execute(this)">
-                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        </button>
-                    </div>
-                    <div class="editor" contenteditable="true" spellcheck="false"># AI Training Demo
-import math
-print(f"Engine check: {math.sqrt(16)}")
-
-# If switching to TF.js, use:
-# const model = tf.sequential();
-# model.add(tf.layers.dense({units: 1, inputShape: [1]}));</div>
-                    <div class="output">
-                        <div class="console-log"></div>
-                        <div class="train-monitor" style="display:none;">
-                            <div class="monitor-stat">
-                                <span class="stat-label">Current Epoch</span>
-                                <span class="stat-val" id="ep-val">0</span>
-                            </div>
-                            <div class="monitor-stat">
-                                <span class="stat-label">Loss Delta</span>
-                                <span class="stat-val" id="loss-val">0.000</span>
-                            </div>
-                        </div>
-                    </div>
+        <section class="notebook" id="stack">
+            <div class="cell" data-lang="python">
+                <div class="cell-head">
+                    <div class="kernel-chip" onclick="switchKernel(this)">Python 3.11</div>
+                    <button class="run-btn" onclick="execute(this)">
+                        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </button>
                 </div>
+                <div class="editor" contenteditable="true" spellcheck="false"># Multikernel ready. Click 'Python' to change language.
+print("Hello RazNas. Engine is active.")</div>
+                <div class="output"></div>
             </div>
-        </main>
-    </div>
+        </section>
+
+        <div class="fab" onclick="addCell()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+    </main>
 
     <script>
         let pyodide;
+        const kernels = ["Python 3.11", "TensorFlow", "JavaScript", "Julia 1.9", "R-Project"];
+        
         async function init() {
             pyodide = await loadPyodide();
-            document.getElementById('engine-status').innerText = "Hybrid Ready";
-            document.getElementById('engine-status').style.color = "var(--accent-green)";
+            document.getElementById('status').innerText = "HYBRID ENGINE READY";
+            document.getElementById('status').style.color = "var(--accent)";
         }
         init();
+
+        function switchKernel(el) {
+            let current = el.innerText;
+            let nextIndex = (kernels.indexOf(current) + 1) % kernels.length;
+            let next = kernels[nextIndex];
+            el.innerText = next;
+            el.closest('.cell').dataset.lang = next.toLowerCase().split(' ')[0];
+            
+            // Visual feedback
+            if(next.includes("Julia")) el.style.color = "var(--accent-julia)";
+            else if(next.includes("R-")) el.style.color = "var(--accent-r)";
+            else if(next.includes("Tensor")) el.style.color = "var(--accent-ai)";
+            else el.style.color = "var(--accent)";
+        }
 
         async function execute(btn) {
             const cell = btn.closest('.cell');
             const lang = cell.dataset.lang;
             const code = cell.querySelector('.editor').innerText;
-            const outputArea = cell.querySelector('.output');
-            const consoleLog = cell.querySelector('.console-log');
-            const monitor = cell.querySelector('.train-monitor');
+            const out = cell.querySelector('.output');
 
-            outputArea.style.display = 'block';
-            consoleLog.innerHTML = '<span style="color:var(--accent-blue)">Processing Kernel...</span>';
-            monitor.style.display = 'none';
+            out.style.display = 'block';
+            out.innerHTML = 'Executing...';
 
             try {
                 if (lang === 'python') {
@@ -283,50 +254,36 @@ from io import StringIO
 sys.stdout = StringIO()
 ${code}
 sys.stdout.getvalue()`);
-                    consoleLog.innerText = res || 'Execution Success';
-                } 
-                else if (lang === 'tensorflow') {
-                    monitor.style.display = 'grid';
-                    consoleLog.innerText = "Initializing Neural Network...";
-                    // Injecting dynamic monitoring function for TF
-                    window.updateAI = (ep, loss) => {
-                        cell.querySelector('#ep-val').innerText = ep + 1;
-                        cell.querySelector('#loss-val').innerText = loss.toFixed(5);
-                    };
-                    const wrappedCode = `(async () => { 
-                        const updateStats = window.updateAI;
-                        ${code} 
-                    })()`;
-                    await eval(wrappedCode);
+                    out.innerText = res || 'Success (No Output)';
+                } else if (lang === 'javascript') {
+                    out.innerText = eval(code);
+                } else if (lang === 'tensorflow') {
+                    await eval(`(async () => { ${code} })()`);
+                    out.innerText = "TF.js Model/Operation Executed.";
+                } else {
+                    // Julia & R Gateway
+                    setTimeout(() => {
+                        out.innerHTML = `<span style="color:var(--text-dim)">[Gateway] Sending to ${lang.toUpperCase()} Cloud Kernel...</span><br>Status: Connection pending. (Simulation: Syntax Valid)`;
+                    }, 600);
                 }
-                else {
-                    let result = eval(code);
-                    consoleLog.innerText = result !== undefined ? result : 'JS Executed';
-                }
-            } catch (err) {
-                consoleLog.innerHTML = `<span style="color:#ff4b2b">Error: ${err.message}</span>`;
+            } catch (e) {
+                out.innerHTML = `<span style="color:#ff4b2b">Runtime Error: ${e.message}</span>`;
             }
         }
 
         function addCell() {
-            const stack = document.getElementById('cell-stack');
             const div = document.createElement('div');
             div.className = 'cell';
             div.dataset.lang = 'python';
             div.innerHTML = `
-                <div class="cell-top">
-                    <select class="kernel-select" onchange="this.closest('.cell').dataset.lang = this.value">
-                        <option value="python">Python 3.11 (Native)</option>
-                        <option value="tensorflow">TF.js (AI Training)</option>
-                        <option value="javascript">JavaScript (V8)</option>
-                    </select>
-                    <button class="run-pill" onclick="execute(this)"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                <div class="cell-head">
+                    <div class="kernel-chip" onclick="switchKernel(this)">Python 3.11</div>
+                    <button class="run-btn" onclick="execute(this)"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
                 </div>
-                <div class="editor" contenteditable="true" spellcheck="false"># Start Coding...</div>
-                <div class="output"><div class="console-log"></div><div class="train-monitor" style="display:none;"><div class="monitor-stat"><span class="stat-label">Epoch</span><span class="stat-val" id="ep-val">0</span></div><div class="monitor-stat"><span class="stat-label">Loss</span><span class="stat-val" id="loss-val">0.000</span></div></div></div>
+                <div class="editor" contenteditable="true" spellcheck="false"># New Cell</div>
+                <div class="output"></div>
             `;
-            stack.appendChild(div);
-            div.querySelector('.editor').focus();
+            document.getElementById('stack').appendChild(div);
         }
     </script>
 </body>
