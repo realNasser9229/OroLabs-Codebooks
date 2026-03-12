@@ -3,324 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OroLabs Codebooks | AI Research</title>
+    <title>OroLabs Codebooks</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap');
+
         :root {
-            --bg-deep: #0a0c10;
-            --glass-bg: rgba(22, 27, 34, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --accent-primary: #00d2ff; /* Liquid Blue */
-            --accent-secondary: #3a7bd5;
-            --text-main: #e6edf3;
-            --text-dim: #8b949e;
-            --code-bg: #0d1117;
+            --bg-base: #05070a;
+            --glass-surface: rgba(17, 25, 39, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-glow: rgba(0, 210, 255, 0.5);
+            --accent-solid: #00d2ff;
+            --accent-run: #2ea043;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --code-blue: #7dd3fc;
+            --code-purple: #c084fc;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            -webkit-tap-highlight-color: transparent;
+            scrollbar-width: thin;
+            scrollbar-color: var(--glass-border) transparent;
         }
 
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background-color: var(--bg-deep);
-            background-image: radial-gradient(circle at 50% 50%, #161b22 0%, #0a0c10 100%);
-            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 210, 255, 0.07) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(110, 64, 201, 0.07) 0px, transparent 50%);
+            color: var(--text-primary);
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* Glassmorphism Header */
-        .header {
-            height: 60px;
+        /* --- Header --- */
+        .app-header {
+            height: 64px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            padding: 0 24px;
+            background: var(--glass-surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--glass-border);
             z-index: 100;
         }
 
-        .brand {
+        .logo-section {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
-        .brand-logo {
+        .gemini-outline-logo {
             width: 32px;
             height: 32px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
+            stroke: var(--accent-solid);
+            stroke-width: 1.5;
+            fill: none;
+            filter: drop-shadow(0 0 8px var(--accent-glow));
         }
 
-        .filename-container {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .filename {
+        .project-meta h1 {
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #238636;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-            box-shadow: 0 0 8px #238636;
+        .project-meta span {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        /* Layout Container */
-        .app-body {
+        /* --- Main Layout --- */
+        .app-container {
             flex: 1;
             display: flex;
             overflow: hidden;
         }
 
-        /* Sidebar: Vertical on PC, Horizontal on Mobile */
         .sidebar {
-            width: 60px;
-            background: var(--glass-bg);
+            width: 72px;
+            background: var(--glass-surface);
             border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 20px;
-            gap: 25px;
-            transition: all 0.3s ease;
+            padding: 24px 0;
+            gap: 32px;
         }
 
-        .nav-item {
+        .nav-icon {
+            width: 24px;
+            height: 24px;
             cursor: pointer;
-            opacity: 0.5;
-            transition: opacity 0.2s, transform 0.2s;
-            font-size: 20px;
+            fill: none;
+            stroke: var(--text-secondary);
+            stroke-width: 2;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .nav-item:hover, .nav-item.active {
-            opacity: 1;
-            transform: scale(1.1);
-            color: var(--accent-primary);
+        .nav-icon:hover, .nav-icon.active {
+            stroke: var(--accent-solid);
+            filter: drop-shadow(0 0 5px var(--accent-glow));
+            transform: translateY(-2px);
         }
 
-        /* Main Notebook */
-        .notebook {
+        /* --- Notebook Content --- */
+        .notebook-view {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            scroll-behavior: smooth;
+            padding: 32px;
+            background: transparent;
         }
 
-        .notebook-inner {
-            max-width: 900px;
+        .notebook-width-limiter {
+            max-width: 1000px;
             margin: 0 auto;
         }
 
-        .toolbar {
+        .action-bar {
+            margin-bottom: 32px;
             display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
+            gap: 12px;
         }
 
-        .btn {
-            background: var(--glass-bg);
+        .btn-action {
+            background: var(--glass-surface);
             border: 1px solid var(--glass-border);
-            color: var(--text-main);
-            padding: 8px 16px;
-            border-radius: 20px;
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: 12px;
             font-size: 13px;
-            cursor: pointer;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
-            backdrop-filter: blur(5px);
-            transition: border-color 0.2s;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .btn:hover {
-            border-color: var(--accent-primary);
+        .btn-action svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--accent-solid);
+            stroke-width: 2;
         }
 
-        /* Cells with Liquid Glass effect */
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-solid);
+        }
+
+        /* --- Cell UI --- */
         .cell {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.015);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border-radius: 16px;
+            margin-bottom: 24px;
             overflow: hidden;
-            transition: box-shadow 0.3s ease;
+            transition: transform 0.2s, border-color 0.2s;
         }
 
         .cell:focus-within {
-            box-shadow: 0 0 20px rgba(0, 210, 255, 0.1);
-            border-color: rgba(0, 210, 255, 0.4);
+            border-color: rgba(0, 210, 255, 0.3);
+            background: rgba(255, 255, 255, 0.025);
         }
 
-        .cell-header {
+        .cell-controls {
             display: flex;
             align-items: center;
-            padding: 10px 15px;
-            background: rgba(0, 0, 0, 0.2);
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .play-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
+        .run-trigger {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-run);
             border: none;
-            background: var(--accent-primary);
-            color: #000;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 10px;
+            box-shadow: 0 4px 12px rgba(46, 160, 67, 0.3);
         }
 
-        .code-area {
-            padding: 15px;
-            font-family: 'Fira Code', 'Cascadia Code', monospace;
+        .run-trigger svg {
+            width: 14px;
+            height: 14px;
+            fill: white;
+        }
+
+        .editor-pane {
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
             font-size: 14px;
+            line-height: 1.6;
+            color: var(--code-blue);
             outline: none;
-            min-height: 60px;
+            min-height: 80px;
             white-space: pre-wrap;
-            color: #9cdcfe;
         }
 
-        .output-area {
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.4);
+        .output-pane {
+            padding: 16px 20px;
+            background: #000;
             border-top: 1px solid var(--glass-border);
-            font-family: monospace;
+            font-family: 'Fira Code', monospace;
             font-size: 13px;
-            color: var(--text-dim);
+            color: var(--text-secondary);
+            display: none;
         }
 
-        /* Responsive Breakpoints */
+        /* --- Mobile Responsiveness --- */
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 width: 100%;
-                height: 60px;
+                height: 72px;
                 flex-direction: row;
                 justify-content: space-around;
-                padding-top: 0;
+                padding: 0;
                 border-right: none;
                 border-top: 1px solid var(--glass-border);
             }
 
-            .notebook {
-                padding: 15px 10px 80px 10px;
+            .notebook-view {
+                padding: 20px 16px 100px 16px;
             }
 
-            .header-right {
-                display: none; /* Simplify mobile header */
-            }
-
-            .hero-title {
-                font-size: 24px;
-            }
+            .btn-action span { display: none; }
+            .btn-action { padding: 10px; }
         }
     </style>
 </head>
 <body>
 
-    <header class="header">
-        <div class="brand">
-            <div class="brand-logo"></div>
-            <div class="filename-container">
-                <span class="filename">orolabs_main.ipynb</span>
-                <span style="font-size: 11px; color: var(--text-dim);">
-                    <span class="status-dot"></span>Active Session
-                </span>
+    <header class="app-header">
+        <div class="logo-section">
+            <svg class="gemini-outline-logo" viewBox="0 0 24 24">
+                <path d="M12 2L4.5 9.5M12 2L19.5 9.5M4.5 9.5L12 17M19.5 9.5L12 17M12 17V22M4.5 9.5H19.5" />
+                <circle cx="12" cy="17" r="1.5" fill="currentColor"/>
+            </svg>
+            <div class="project-meta">
+                <h1>OROLABS CODEBOOKS</h1>
+                <span><svg width="8" height="8"><circle cx="4" cy="4" r="3" fill="#2ea043"/></svg> v1.4.0 Live Engine</span>
             </div>
         </div>
-        <div class="header-right">
-            <button class="btn" style="border-radius: 6px;">RAM 0.8GB / 12GB</button>
-        </div>
-    </header>
-
-    <div class="app-body">
-        <nav class="sidebar">
-            <div class="nav-item active" title="Files">📁</div>
-            <div class="nav-item" title="Search">🔍</div>
-            <div class="nav-item" title="Settings">⚙️</div>
-            <div class="nav-item" title="Variables">{}</div>
-        </nav>
-
-        <main class="notebook">
-            <div class="notebook-inner">
-                <div class="toolbar">
-                    <button class="btn" onclick="addCell()">+ Code</button>
-                    <button class="btn">+ Text</button>
-                </div>
-
-                <div id="cell-container">
-                    <div class="cell">
-                        <div class="cell-header">
-                            <button class="play-btn">▶</button>
-                            <span style="margin-left: 15px; font-size: 12px; color: var(--text-dim);">[1]</span>
-                        </div>
-                        <div class="code-area" contenteditable="true" spellcheck="false">import orolabs_ai as ai
-
-# Initializing Nasoro Engine...
-model = ai.load("nasoro-v3-ultra")
-model.launch_webchat()</div>
-                        <div class="output-area">
-                            Successfully connected to Botpress cloud.
-                            Ready for input at 2026-03-12 16:55 UTC.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="https://cdn.botpress.cloud/webchat/v3.6/inject.js"></script>
-    <script src="https://files.bpcontent.cloud/2026/03/12/15/20260312151313-UGOZEFTQ.js" defer></script>
-
-    <script>
-        function addCell() {
-            const container = document.getElementById('cell-container');
-            const newCell = document.createElement('div');
-            newCell.className = 'cell';
-            newCell.innerHTML = `
-                <div class="cell-header">
-                    <button class="play-btn">▶</button>
-                    <span style="margin-left: 15px; font-size: 12px; color: var(--text-dim);">[*]</span>
-                </div>
-                <div class="code-area" contenteditable="true" spellcheck="false"># New Code Cell</div>
-            `;
-            container.appendChild(newCell);
-            newCell.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Handle Play Button Visuals
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.play-btn')) {
-                const btn = e.target.closest('.play-btn');
-                btn.style.transform = 'scale(0.9)';
-                btn.style.filter = 'brightness(1.5)';
-                setTimeout(() => {
-                    btn.style.transform = 'scale(1)';
-                    btn.style.filter = 'none';
-                }, 200);
-            }
-        });
-    </script>
-</body>
-</html>
+        <div class="header-tools">
+            <button class="btn-action" onclick="saveNotebook()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 2
+                                                                               
