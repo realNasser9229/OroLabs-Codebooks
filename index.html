@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OroLabs Codebooks | Multi-Kernel</title>
+    <title>OroLabs Codebooks | AI Training</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
 
         :root {
             --bg-deep: #050505;
-            --glass-base: rgba(15, 15, 20, 0.7);
+            --glass-base: rgba(15, 15, 20, 0.75);
             --glass-border: rgba(255, 255, 255, 0.08);
             --accent-blue: #00d2ff;
             --accent-purple: #9d50bb;
-            --accent-green: #00f260;
+            --accent-ai: #ff00ff;
             --text-main: #f0f0f0;
             --text-muted: #808080;
         }
@@ -25,8 +26,8 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-deep);
             background-image: 
-                radial-gradient(circle at 0% 0%, rgba(0, 210, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 100% 100%, rgba(157, 80, 187, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 0% 0%, rgba(0, 210, 255, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(255, 0, 255, 0.04) 0%, transparent 40%);
             color: var(--text-main);
             height: 100dvh;
             display: flex;
@@ -48,30 +49,18 @@
             z-index: 100;
         }
 
-        .logo-box {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
+        .logo-box { display: flex; align-items: center; gap: 15px; }
         .gemini-outline {
-            width: 34px;
-            height: 34px;
+            width: 34px; height: 34px;
             stroke: var(--accent-blue);
-            stroke-width: 1.2;
-            fill: none;
+            stroke-width: 1.2; fill: none;
             filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.4));
         }
 
         .branding h1 { font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #fff; }
         .branding span { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
 
-        /* --- Layout Container --- */
-        .main-layout {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
+        .main-layout { flex: 1; display: flex; overflow: hidden; }
 
         /* Sidebar Navigation */
         .nav-rail {
@@ -86,13 +75,10 @@
         }
 
         .nav-btn {
-            width: 24px;
-            height: 24px;
+            width: 24px; height: 24px;
             stroke: var(--text-muted);
-            stroke-width: 2;
-            fill: none;
-            cursor: pointer;
-            transition: 0.3s;
+            stroke-width: 2; fill: none;
+            cursor: pointer; transition: 0.3s;
         }
 
         .nav-btn:hover, .nav-btn.active { stroke: var(--accent-blue); transform: scale(1.1); }
@@ -101,7 +87,7 @@
         .notebook-container {
             flex: 1;
             overflow-y: auto;
-            padding: 30px 5%;
+            padding: 30px 8%;
             scroll-behavior: smooth;
         }
 
@@ -111,8 +97,6 @@
             align-items: center;
             margin-bottom: 30px;
         }
-
-        .add-btns { display: flex; gap: 12px; }
 
         .btn-ui {
             background: var(--glass-base);
@@ -131,60 +115,47 @@
 
         .btn-ui:hover { background: rgba(255,255,255,0.05); border-color: var(--accent-blue); }
 
-        /* Multi-Kernel Cell UI */
+        /* Cell UI */
         .cell {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--glass-border);
             border-radius: 18px;
             margin-bottom: 25px;
             transition: 0.3s;
+            overflow: hidden;
         }
 
         .cell:focus-within { border-color: rgba(0, 210, 255, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .cell-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 20px;
-            background: rgba(0,0,0,0.2);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 20px; background: rgba(0,0,0,0.25);
             border-bottom: 1px solid var(--glass-border);
         }
 
         .kernel-select {
-            background: transparent;
-            border: none;
-            color: var(--accent-blue);
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            outline: none;
-            cursor: pointer;
+            background: transparent; border: none;
+            color: var(--accent-blue); font-size: 11px;
+            font-weight: 800; text-transform: uppercase; outline: none;
         }
 
         .run-pill {
-            width: 32px;
-            height: 32px;
+            width: 32px; height: 32px;
             background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: none; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s;
         }
 
+        .run-pill:active { transform: scale(0.9); }
         .run-pill svg { width: 14px; height: 14px; fill: #fff; }
 
         .editor {
             padding: 20px;
             font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #d1d5db;
-            outline: none;
-            min-height: 80px;
-            white-space: pre-wrap;
+            font-size: 14px; line-height: 1.6;
+            color: #d1d5db; outline: none;
+            min-height: 80px; white-space: pre-wrap;
         }
 
         .output {
@@ -192,36 +163,29 @@
             background: #000;
             border-top: 1px solid var(--glass-border);
             font-family: 'Fira Code', monospace;
-            font-size: 12px;
-            color: var(--text-muted);
+            font-size: 12px; color: var(--text-muted);
             display: none;
-            border-bottom-left-radius: 18px;
-            border-bottom-right-radius: 18px;
         }
 
-        /* Loading Overlay */
-        #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-deep); z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        /* AI Training Monitor */
+        .train-monitor {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 15px; margin-top: 10px; padding-top: 10px;
+            border-top: 1px dashed #333;
         }
 
-        /* Mobile Optimization */
+        .monitor-stat { display: flex; flex-direction: column; }
+        .stat-val { font-size: 18px; color: var(--accent-ai); font-weight: 800; }
+        .stat-label { font-size: 9px; text-transform: uppercase; opacity: 0.6; }
+
         @media (max-width: 768px) {
-            .nav-rail { position: fixed; bottom: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; border-top: 1px solid var(--glass-border); }
-            .notebook-container { padding-bottom: 100px; }
+            .nav-rail { position: fixed; bottom: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; border-top: 1px solid var(--glass-border); z-index: 1000;}
+            .notebook-container { padding: 20px 15px 100px 15px; }
             .branding span { display: none; }
         }
     </style>
 </head>
 <body>
-
-    <div id="loader">
-        <svg class="gemini-outline" style="width: 60px; height: 60px; margin-bottom: 20px;" viewBox="0 0 24 24">
-            <path d="M12 2L4.5 9.5M12 2L19.5 9.5M4.5 9.5L12 17M19.5 9.5L12 17M12 17V22M4.5 9.5H19.5" />
-        </svg>
-        <p style="letter-spacing: 2px; font-size: 12px;">INITIALIZING MULTI-KERNEL ENGINE...</p>
-    </div>
 
     <header class="header">
         <div class="logo-box">
@@ -230,30 +194,26 @@
             </svg>
             <div class="branding">
                 <h1>OROLABS CODEBOOKS</h1>
-                <span>Kernel: <b id="current-kernel">Python 3.11</b></span>
+                <span>System: <b id="engine-status" style="color:var(--accent-blue)">Connecting...</b></span>
             </div>
         </div>
-        <div class="header-right">
-            <div id="py-status" style="font-size: 10px; color: var(--accent-green);">● Engine Ready</div>
-        </div>
+        <div id="ai-status" style="font-size: 10px; color: var(--accent-ai);">GPU ACCELERATION: ON</div>
     </header>
 
     <div class="main-layout">
         <nav class="nav-rail">
             <svg class="nav-btn active" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-            <svg class="nav-btn" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <svg class="nav-btn" viewBox="0 0 24 24"><path d="M12 2v20M17 5H7M17 19H7"/></svg>
+            <svg class="nav-btn" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
         </nav>
 
         <main class="notebook-container">
             <div class="controls-row">
-                <div class="add-btns">
-                    <button class="btn-ui" onclick="addCell()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        New Cell
-                    </button>
-                </div>
-                <div style="font-size: 12px; color: var(--text-muted);">Session: <span id="author-tag">RazNas_v2</span></div>
+                <button class="btn-ui" onclick="addCell()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New Kernel Cell
+                </button>
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: bold;">RAZNAS_CORE_V2.5</div>
             </div>
 
             <div id="cell-stack">
@@ -261,19 +221,33 @@
                     <div class="cell-top">
                         <select class="kernel-select" onchange="this.closest('.cell').dataset.lang = this.value">
                             <option value="python">Python 3.11 (Native)</option>
+                            <option value="tensorflow">TF.js (AI Training)</option>
                             <option value="javascript">JavaScript (V8)</option>
-                            <option value="julia">Julia 1.9 (Cloud)</option>
-                            <option value="r">R-Project (Cloud)</option>
                         </select>
                         <button class="run-pill" onclick="execute(this)">
                             <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                         </button>
                     </div>
-                    <div class="editor" contenteditable="true" spellcheck="false"># Real Python running in your browser!
+                    <div class="editor" contenteditable="true" spellcheck="false"># AI Training Demo
 import math
-print(f"Pi is approximately {math.pi}")
-[x**2 for x in range(5)]</div>
-                    <div class="output"></div>
+print(f"Engine check: {math.sqrt(16)}")
+
+# If switching to TF.js, use:
+# const model = tf.sequential();
+# model.add(tf.layers.dense({units: 1, inputShape: [1]}));</div>
+                    <div class="output">
+                        <div class="console-log"></div>
+                        <div class="train-monitor" style="display:none;">
+                            <div class="monitor-stat">
+                                <span class="stat-label">Current Epoch</span>
+                                <span class="stat-val" id="ep-val">0</span>
+                            </div>
+                            <div class="monitor-stat">
+                                <span class="stat-label">Loss Delta</span>
+                                <span class="stat-val" id="loss-val">0.000</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -281,46 +255,56 @@ print(f"Pi is approximately {math.pi}")
 
     <script>
         let pyodide;
-
-        async function initPy() {
+        async function init() {
             pyodide = await loadPyodide();
-            document.getElementById('loader').style.display = 'none';
+            document.getElementById('engine-status').innerText = "Hybrid Ready";
+            document.getElementById('engine-status').style.color = "var(--accent-green)";
         }
-        initPy();
+        init();
 
         async function execute(btn) {
             const cell = btn.closest('.cell');
             const lang = cell.dataset.lang;
             const code = cell.querySelector('.editor').innerText;
-            const output = cell.querySelector('.output');
-            
-            output.style.display = 'block';
-            output.innerHTML = '<span style="color:var(--accent-blue)">Running...</span>';
+            const outputArea = cell.querySelector('.output');
+            const consoleLog = cell.querySelector('.console-log');
+            const monitor = cell.querySelector('.train-monitor');
+
+            outputArea.style.display = 'block';
+            consoleLog.innerHTML = '<span style="color:var(--accent-blue)">Processing Kernel...</span>';
+            monitor.style.display = 'none';
 
             try {
                 if (lang === 'python') {
-                    // Python Execution
                     await pyodide.loadPackagesFromImports(code);
-                    let result = await pyodide.runPythonAsync(`
+                    let res = await pyodide.runPythonAsync(`
 import sys
 from io import StringIO
 sys.stdout = StringIO()
 ${code}
-sys.stdout.getvalue()
-                    `);
-                    output.innerText = result || 'Executed (No Output)';
-                } else if (lang === 'javascript') {
-                    // JS Execution
+sys.stdout.getvalue()`);
+                    consoleLog.innerText = res || 'Execution Success';
+                } 
+                else if (lang === 'tensorflow') {
+                    monitor.style.display = 'grid';
+                    consoleLog.innerText = "Initializing Neural Network...";
+                    // Injecting dynamic monitoring function for TF
+                    window.updateAI = (ep, loss) => {
+                        cell.querySelector('#ep-val').innerText = ep + 1;
+                        cell.querySelector('#loss-val').innerText = loss.toFixed(5);
+                    };
+                    const wrappedCode = `(async () => { 
+                        const updateStats = window.updateAI;
+                        ${code} 
+                    })()`;
+                    await eval(wrappedCode);
+                }
+                else {
                     let result = eval(code);
-                    output.innerText = result !== undefined ? result : 'Executed';
-                } else {
-                    // Julia / R Simulation
-                    setTimeout(() => {
-                        output.innerHTML = `<span style="color:var(--accent-purple)">[REMOTE KERNEL]</span> Connecting to ${lang.toUpperCase()} environment...\n<span style="color:var(--text-muted)">Simulation: 0.4s | Executing syntax check... Success.</span>`;
-                    }, 800);
+                    consoleLog.innerText = result !== undefined ? result : 'JS Executed';
                 }
             } catch (err) {
-                output.innerHTML = `<span style="color:#ff4b2b">Error: ${err.message}</span>`;
+                consoleLog.innerHTML = `<span style="color:#ff4b2b">Error: ${err.message}</span>`;
             }
         }
 
@@ -333,19 +317,17 @@ sys.stdout.getvalue()
                 <div class="cell-top">
                     <select class="kernel-select" onchange="this.closest('.cell').dataset.lang = this.value">
                         <option value="python">Python 3.11 (Native)</option>
+                        <option value="tensorflow">TF.js (AI Training)</option>
                         <option value="javascript">JavaScript (V8)</option>
-                        <option value="julia">Julia 1.9 (Cloud)</option>
-                        <option value="r">R-Project (Cloud)</option>
                     </select>
                     <button class="run-pill" onclick="execute(this)"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
                 </div>
-                <div class="editor" contenteditable="true" spellcheck="false"># New Code Cell</div>
-                <div class="output"></div>
+                <div class="editor" contenteditable="true" spellcheck="false"># Start Coding...</div>
+                <div class="output"><div class="console-log"></div><div class="train-monitor" style="display:none;"><div class="monitor-stat"><span class="stat-label">Epoch</span><span class="stat-val" id="ep-val">0</span></div><div class="monitor-stat"><span class="stat-label">Loss</span><span class="stat-val" id="loss-val">0.000</span></div></div></div>
             `;
             stack.appendChild(div);
             div.querySelector('.editor').focus();
         }
     </script>
 </body>
-    </html>
-    
+</html>
