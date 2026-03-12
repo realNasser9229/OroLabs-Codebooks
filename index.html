@@ -3,287 +3,519 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OroLabs Zen-Code</title>
+    <title>OroLabs Codebooks | Get started</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;800&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         :root {
-            --bg: #030303;
-            --panel: rgba(20, 20, 25, 0.6);
-            --border: rgba(255, 255, 255, 0.05);
-            --accent: #00d2ff;
-            --accent-ai: #ff00ff;
-            --accent-julia: #9558b2;
-            --accent-r: #276dc3;
-            --text: #e0e0e0;
-            --text-dim: #707070;
+            --bg-deep: #050505; --glass-base: rgba(15,15,20,0.75);
+            --glass-border: rgba(255,255,255,0.08); --accent-blue: #00d2ff;
+            --accent-purple: #9d50bb; --accent-ai: #ff00ff; --accent-green: #00ff9d;
+            --text-main: #f0f0f0; --text-muted: #808080; --error: #ff4b2b;
+            --success: #00ff9d; --warning: #ffaa00;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-        
+        [data-theme="light"] {
+            --bg-deep: #f8f9fa; --glass-base: rgba(255,255,255,0.85);
+            --glass-border: rgba(0,0,0,0.08); --text-main: #1a1a2e;
+            --text-muted: #666;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            height: 100dvh;
-            display: flex;
-            overflow: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-deep);
+            background-image: radial-gradient(circle at 0% 0%, rgba(0,210,255,0.04) 0%, transparent 40%),
+                              radial-gradient(circle at 100% 100%, rgba(255,0,255,0.04) 0%, transparent 40%);
+            color: var(--text-main); height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
+            transition: background 0.3s, color 0.3s;
         }
-
-        /* --- Minimalist Rail --- */
+        .header {
+            height: 64px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; background: var(--glass-base); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px); border-bottom: 1px solid var(--glass-border); z-index: 100;
+        }
+        .logo-box { display: flex; align-items: center; gap: 12px; }
+        .gemini-outline {
+            width: 32px; height: 32px; stroke: var(--accent-blue); stroke-width: 1.2; fill: none;
+            filter: drop-shadow(0 0 10px rgba(0,210,255,0.4));
+        }
+        .branding h1 { font-size: 14px; font-weight: 800; letter-spacing: 0.5px; color: #fff; }
+        .branding span { font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+        .main-layout { flex: 1; display: flex; overflow: hidden; }
         .nav-rail {
-            width: 72px;
-            background: rgba(0,0,0,0.5);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 24px;
-            gap: 24px;
+            width: 60px; background: rgba(0,0,0,0.2); border-right: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 24px;
         }
-
-        .nav-item {
-            width: 40px; height: 40px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            stroke: var(--text-dim);
-            fill: none;
-            stroke-width: 1.5;
+        .nav-btn {
+            width: 22px; height: 22px; stroke: var(--text-muted); stroke-width: 2; fill: none;            cursor: pointer; transition: 0.2s; padding: 8px; border-radius: 8px;
         }
-
-        .nav-item:hover, .nav-item.active {
-            background: var(--border);
-            stroke: var(--accent);
+        .nav-btn:hover, .nav-btn.active { stroke: var(--accent-blue); background: rgba(0,210,255,0.1); }
+        .notebook-container {
+            flex: 1; overflow-y: auto; padding: 20px; scroll-behavior: smooth;
+            padding-bottom: 90px;
         }
-
-        /* --- Main Content --- */
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+        .controls-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+        }
+        .btn-ui {
+            background: var(--glass-base); border: 1px solid var(--glass-border);
+            color: #fff; padding: 8px 14px; border-radius: 10px; font-size: 12px;
+            font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            transition: 0.2s; user-select: none;
+        }
+        .btn-ui:hover { background: rgba(255,255,255,0.08); border-color: var(--accent-blue); }
+        .btn-ui:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-danger { border-color: var(--error); color: var(--error); }
+        .btn-danger:hover { background: rgba(255,75,43,0.1); }
+        .cell {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);
+            border-radius: 16px; margin-bottom: 20px; transition: 0.2s; overflow: hidden;
             position: relative;
         }
-
-        header {
-            height: 64px;
-            padding: 0 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
+        .cell:focus-within, .cell.running { border-color: var(--accent-blue); box-shadow: 0 8px 25px rgba(0,210,255,0.15); }
+        .cell.error { border-color: var(--error); }
+        .cell-top {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 16px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--glass-border);
+            flex-wrap: wrap; gap: 8px;
         }
-
-        .logo { font-weight: 800; font-size: 14px; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
-        .logo svg { width: 24px; stroke: var(--accent); }
-
-        .notebook {
-            flex: 1;
-            overflow-y: auto;
-            padding: 40px 15%;
+        .cell-controls { display: flex; align-items: center; gap: 4px; }
+        .cell-btn {
+            width: 28px; height: 28px; border: none; background: transparent;
+            color: var(--text-muted); cursor: pointer; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
         }
-
-        /* --- Modern Cell --- */
-        .cell {
-            background: var(--panel);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            margin-bottom: 30px;
-            transition: border-color 0.3s, transform 0.2s;
+        .cell-btn:hover { color: var(--accent-blue); background: rgba(0,210,255,0.1); }
+        .kernel-select {
+            background: transparent; border: 1px solid var(--glass-border);
+            color: var(--accent-blue); font-size: 11px; font-weight: 700;
+            text-transform: uppercase; outline: none; padding: 4px 8px; border-radius: 6px;
         }
-
-        .cell:hover { border-color: rgba(255,255,255,0.1); }
-        .cell:focus-within { border-color: var(--accent); }
-
-        .cell-head {
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .kernel-chip {
-            background: rgba(255,255,255,0.05);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--text-dim);
-            cursor: pointer;
-        }
-
-        .kernel-chip:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-
-        .run-btn {
-            width: 30px; height: 30px;
-            background: var(--text);
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
-        }
-
-        .run-btn:hover { transform: scale(1.1); background: var(--accent); }
-        .run-btn svg { width: 12px; fill: var(--bg); }
-
+        .run-pill {
+            width: 30px; height: 30px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.15s; flex-shrink: 0;
+        }        .run-pill:hover { transform: scale(1.05); }
+        .run-pill:active { transform: scale(0.95); }
+        .run-pill svg { width: 12px; height: 12px; fill: #fff; }
+        .run-pill.loading { animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .editor-wrapper { position: relative; }
         .editor {
-            padding: 24px;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            min-height: 60px;
-            line-height: 1.6;
+            padding: 16px; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.5;
+            color: #d1d5db; outline: none; min-height: 70px; white-space: pre-wrap;
+            width: 100%; border: none; background: transparent; resize: vertical;
         }
-
+        .editor::placeholder { color: var(--text-muted); opacity: 0.7; }
         .output {
-            padding: 16px 24px;
-            font-family: 'Fira Code', monospace;
-            font-size: 12px;
-            color: var(--text-dim);
-            background: rgba(0,0,0,0.2);
-            border-top: 1px solid var(--border);
-            display: none;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
+            padding: 12px 16px; background: #0a0a0f; border-top: 1px solid var(--glass-border);
+            font-family: 'Fira Code', monospace; font-size: 11px; display: none;
+            max-height: 300px; overflow-y: auto;
         }
-
-        /* --- Floating Action --- */
-        .fab {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: var(--accent);
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 10px 20px rgba(0, 210, 255, 0.3);
-            cursor: pointer;
-            transition: 0.3s;
+        .output.show { display: block; animation: slideDown 0.2s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .console-log { white-space: pre-wrap; word-break: break-word; }
+        .log-info { color: var(--text-muted); }
+        .log-success { color: var(--success); }
+        .log-error { color: var(--error); }
+        .log-warning { color: var(--warning); }
+        .log-ai { color: var(--accent-ai); }
+        .train-monitor {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px; margin-top: 12px; padding-top: 12px;
+            border-top: 1px dashed rgba(255,255,255,0.1);
         }
-
-        .fab:hover { transform: rotate(90deg) scale(1.1); }
-
+        .monitor-stat { display: flex; flex-direction: column; gap: 4px; }
+        .stat-val { font-size: 16px; color: var(--accent-ai); font-weight: 700; font-family: 'Fira Code', monospace; }
+        .stat-label { font-size: 9px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        .progress-bar {
+            height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-top: 4px;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-ai));
+            width: 0%; transition: width 0.3s ease;
+        }
+        .status-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--glass-base);
+            backdrop-filter: blur(20px); border-top: 1px solid var(--glass-border);
+            padding: 8px 16px; font-size: 11px; color: var(--text-muted); display: flex;
+            justify-content: space-between; align-items: center; z-index: 99;
+        }
+        .toast {
+            position: fixed; top: 80px; right: 20px; background: var(--glass-base);
+            border: 1px solid var(--glass-border); border-left: 3px solid var(--accent-blue);
+            padding: 12px 16px; border-radius: 10px; font-size: 12px; z-index: 200;            box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideIn 0.3s ease;
+            max-width: 280px;
+        }
+        .toast.error { border-left-color: var(--error); }
+        .toast.success { border-left-color: var(--success); }
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @media (max-width: 768px) {
-            .nav-rail { display: none; }
-            .notebook { padding: 20px; }
-            header { padding: 0 15px; }
+            .nav-rail {
+                position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: 60px;
+                flex-direction: row; justify-content: space-around; border-top: 1px solid var(--glass-border);
+                border-right: none; padding: 0; z-index: 1000; background: var(--glass-base);
+                backdrop-filter: blur(25px);
+            }
+            .notebook-container { padding: 15px 12px 80px; }
+            .header { padding: 0 15px; }
+            .branding span { display: none; }
+            .controls-row { flex-direction: column; align-items: stretch; }
+            .cell-top { padding: 8px 12px; }
+            .editor { font-size: 12px; padding: 12px; }
         }
+        .hidden { display: none !important; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
     </style>
 </head>
 <body>
-
-    <aside class="nav-rail">
-        <div class="nav-item active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
-        <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H7M17 19H7"/></svg></div>
-        <div class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2"/></svg></div>
-    </aside>
-
-    <main class="main">
-        <header>
-            <div class="logo">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2L4.5 9.5M12 2L19.5 9.5M4.5 9.5L12 17M19.5 9.5L12 17M12 17V22M4.5 9.5H19.5"/></svg>
-                OROLABS
+    <header class="header">
+        <div class="logo-box">
+            <svg class="gemini-outline" viewBox="0 0 24 24"><path d="M12 2L4.5 9.5M12 2L19.5 9.5M4.5 9.5L12 17M19.5 9.5L12 17M12 17V22M4.5 9.5H19.5"/></svg>
+            <div class="branding">
+                <h1>OROLABS CODEBOOKS</h1>
+                <span>Engine: <b id="engine-status">Initializing…</b></span>
             </div>
-            <div id="status" style="font-size: 10px; font-weight: 800; color: var(--text-dim);">SYSTEM STABLE</div>
-        </header>
+        </div>
+        <div class="header-actions">
+            <button class="btn-ui" id="theme-toggle" title="Toggle theme">🌓</button>
+            <button class="btn-ui" id="export-btn" title="Export notebook">📤 Export</button>
+        </div>
+    </header>
+    <div class="main-layout">
+        <nav class="nav-rail" role="navigation" aria-label="Main navigation">
+            <svg class="nav-btn active" viewBox="0 0 24 24" title="Notebook"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-width="2"/></svg>
+            <svg class="nav-btn" viewBox="0 0 24 24" title="History"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/></svg>
+            <svg class="nav-btn" viewBox="0 0 24 24" title="Settings"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke-width="1.5"/></svg>
+        </nav>
+        <main class="notebook-container" id="notebook">
+            <div class="controls-row">
+                <button class="btn-ui" id="add-cell-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Cell
+                </button>                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">RAZNAS_CORE_V3.0</div>
+            </div>
+            <div id="cell-stack"></div>
+        </main>
+    </div>
+    <div class="status-bar">
+        <span id="status-text">Ready</span>
+        <span id="memory-indicator">Memory: —</span>
+    </div>
+    <script>
+        const state = { pyodide: null, tfReady: false, cells: [], cellIdCounter: 0, theme: localStorage.getItem('theme') || 'dark' };
+        const TEMPLATES = {
+            python: `# Python 3.11 via Pyodide\nimport math\nprint(f"✓ Engine: sqrt(16) = {math.sqrt(16)}")\n\n# Try: import numpy as np`,
+            tensorflow: `// TensorFlow.js AI Training Demo\n(async () => {\n  const model = tf.sequential();\n  model.add(tf.layers.dense({units: 1, inputShape: [1]}));\n  model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});\n  \n  const xs = tf.tensor2d([-1,0,1,2,3,4], [6,1]);\n  const ys = tf.tensor2d([-3,-1,1,3,5,7], [6,1]);\n  \n  await model.fit(xs, ys, {\n    epochs: 50,\n    callbacks: {\n      onEpochEnd: (epoch, logs) => {\n        if(epoch % 10 === 0) {\n          updateMonitor('${'{{CELL_ID}}'}', epoch, logs.loss);\n        }\n      }\n    }\n  });\n  \n  console.log('Prediction for x=10:', await model.predict(tf.tensor2d([10], [1,1])).data());\n})();`,
+            javascript: `// Vanilla JavaScript (V8)\nconst result = [1,2,3].map(n => n * 2);\nconsole.log('Mapped:', result);\n\n// Async example:\nawait new Promise(r => setTimeout(r, 500));\nconsole.log('✓ Delay completed');`
+        };
 
-        <section class="notebook" id="stack">
-            <div class="cell" data-lang="python">
-                <div class="cell-head">
-                    <div class="kernel-chip" onclick="switchKernel(this)">Python 3.11</div>
-                    <button class="run-btn" onclick="execute(this)">
-                        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        document.addEventListener('DOMContentLoaded', async () => {
+            applyTheme(state.theme);
+            setupEventListeners();
+            await initEngine();
+            loadNotebook();
+            if (!document.querySelector('.cell')) addCell();
+        });
+
+        async function initEngine() {
+            const statusEl = document.getElementById('engine-status');
+            try {
+                state.pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/' });
+                if (typeof tf !== 'undefined') state.tfReady = true;
+                statusEl.textContent = 'Hybrid Ready';
+                statusEl.style.color = 'var(--success)';
+                showToast('Engines loaded: Python + TF.js', 'success');
+                updateMemory();
+            } catch (err) {
+                statusEl.textContent = 'Error';
+                statusEl.style.color = 'var(--error)';
+                showToast('Engine init failed: ' + err.message, 'error');
+                console.error(err);
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('add-cell-btn').addEventListener('click', () => addCell());
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            document.getElementById('export-btn').addEventListener('click', exportNotebook);
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    const active = document.activeElement;                    if (active?.classList.contains('editor')) {
+                        const cell = active.closest('.cell');
+                        if (cell) execute(cell.querySelector('.run-pill'));
+                    }
+                }
+                if (e.key === 'Escape') {
+                    const active = document.activeElement;
+                    if (active?.classList.contains('editor')) active.blur();
+                }
+            });
+            setInterval(saveNotebook, 30000);
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            state.theme = theme;
+            localStorage.setItem('theme', theme);
+        }
+        function toggleTheme() {
+            const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+            showToast(`Theme: ${newTheme}`);
+        }
+
+        function addCell(lang = 'python', code = '') {
+            const id = `cell-${++state.cellIdCounter}`;
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.id = id;
+            cell.dataset.lang = lang;
+            cell.innerHTML = `
+                <div class="cell-top">
+                    <select class="kernel-select" aria-label="Kernel type">
+                        <option value="python" ${lang==='python'?'selected':''}>Python 3.11</option>
+                        <option value="tensorflow" ${lang==='tensorflow'?'selected':''}>TF.js AI</option>
+                        <option value="javascript" ${lang==='javascript'?'selected':''}>JavaScript</option>
+                    </select>
+                    <div class="cell-controls">
+                        <button class="cell-btn" data-action="duplicate" title="Duplicate">⧉</button>
+                        <button class="cell-btn" data-action="up" title="Move up">↑</button>
+                        <button class="cell-btn" data-action="down" title="Move down">↓</button>
+                        <button class="cell-btn" data-action="delete" title="Delete">✕</button>
+                    </div>
+                    <button class="run-pill" title="Run (Ctrl+Enter)">
+                        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg>
                     </button>
                 </div>
-                <div class="editor" contenteditable="true" spellcheck="false"># Multikernel ready. Click 'Python' to change language.
-print("Hello RazNas. Engine is active.")</div>
-                <div class="output"></div>
-            </div>
-        </section>
-
-        <div class="fab" onclick="addCell()">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </div>
-    </main>
-
-    <script>
-        let pyodide;
-        const kernels = ["Python 3.11", "TensorFlow", "JavaScript", "Julia 1.9", "R-Project"];
-        
-        async function init() {
-            pyodide = await loadPyodide();
-            document.getElementById('status').innerText = "HYBRID ENGINE READY";
-            document.getElementById('status').style.color = "var(--accent)";
+                <div class="editor-wrapper">
+                    <div class="editor" contenteditable="true" spellcheck="false" role="textbox" aria-multiline="true">${code || TEMPLATES[lang].replace('{{CELL_ID}}', id)}</div>
+                </div>                <div class="output">
+                    <div class="console-log"></div>
+                    <div class="train-monitor hidden">
+                        <div class="monitor-stat">
+                            <span class="stat-label">Epoch</span>
+                            <span class="stat-val epoch-val">0</span>
+                            <div class="progress-bar"><div class="progress-fill"></div></div>
+                        </div>
+                        <div class="monitor-stat">
+                            <span class="stat-label">Loss</span>
+                            <span class="stat-val loss-val">—</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            cell.querySelector('.kernel-select').addEventListener('change', (e) => {
+                cell.dataset.lang = e.target.value;
+                const editor = cell.querySelector('.editor');
+                editor.textContent = TEMPLATES[e.target.value].replace('{{CELL_ID}}', id);
+            });
+            cell.querySelector('.run-pill').addEventListener('click', (e) => execute(e.currentTarget));
+            cell.querySelectorAll('.cell-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => handleCellAction(e.currentTarget, cell));
+            });
+            const editor = cell.querySelector('.editor');
+            editor.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const sel = window.getSelection();
+                    if (sel.rangeCount) {
+                        const range = sel.getRangeAt(0);
+                        range.deleteContents();
+                        range.insertNode(document.createTextNode('  '));
+                        range.collapse(false);
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                }
+            });
+            const resize = () => { editor.style.height = 'auto'; editor.style.height = (editor.scrollHeight) + 'px'; };
+            editor.addEventListener('input', resize);
+            setTimeout(resize, 0);
+            document.getElementById('cell-stack').appendChild(cell);
+            state.cells.push({ id, lang, code: editor.textContent });
+            return cell;
         }
-        init();
 
-        function switchKernel(el) {
-            let current = el.innerText;
-            let nextIndex = (kernels.indexOf(current) + 1) % kernels.length;
-            let next = kernels[nextIndex];
-            el.innerText = next;
-            el.closest('.cell').dataset.lang = next.toLowerCase().split(' ')[0];
-            
-            // Visual feedback
-            if(next.includes("Julia")) el.style.color = "var(--accent-julia)";
-            else if(next.includes("R-")) el.style.color = "var(--accent-r)";
-            else if(next.includes("Tensor")) el.style.color = "var(--accent-ai)";
-            else el.style.color = "var(--accent)";
+        function handleCellAction(btn, cell) {
+            const action = btn.dataset.action;
+            const stack = document.getElementById('cell-stack');
+            if (action === 'delete') {
+                cell.remove();
+                state.cells = state.cells.filter(c => c.dataset?.id !== cell.dataset.id);
+            } else if (action === 'duplicate') {
+                const newCell = addCell(cell.dataset.lang, cell.querySelector('.editor').textContent);
+                stack.insertBefore(newCell, cell.nextSibling);
+            } else if (action === 'up' && cell.previousElementSibling) {
+                stack.insertBefore(cell, cell.previousElementSibling);
+            } else if (action === 'down' && cell.nextElementSibling) {
+                stack.insertBefore(cell.nextElementSibling, cell);
+            }
         }
 
         async function execute(btn) {
             const cell = btn.closest('.cell');
-            const lang = cell.dataset.lang;
-            const code = cell.querySelector('.editor').innerText;
-            const out = cell.querySelector('.output');
-
-            out.style.display = 'block';
-            out.innerHTML = 'Executing...';
-
+            const { id, lang } = cell.dataset;
+            const code = cell.querySelector('.editor').textContent.trim();
+            const output = cell.querySelector('.output');
+            const log = cell.querySelector('.console-log');
+            const monitor = cell.querySelector('.train-monitor');
+            
+            if (!code) { showToast('Empty cell', 'warning'); return; }
+            
+            btn.classList.add('loading');
+            cell.classList.add('running');
+            cell.classList.remove('error');
+            output.classList.add('show');
+            monitor.classList.add('hidden');
+            log.innerHTML = '<span class="log-info">▶ Running…</span>';
+            updateStatus('Executing…');
+            
             try {
                 if (lang === 'python') {
-                    await pyodide.loadPackagesFromImports(code);
-                    let res = await pyodide.runPythonAsync(`
-import sys
-from io import StringIO
-sys.stdout = StringIO()
-${code}
-sys.stdout.getvalue()`);
-                    out.innerText = res || 'Success (No Output)';
-                } else if (lang === 'javascript') {
-                    out.innerText = eval(code);
+                    await runPython(code, log, cell);
                 } else if (lang === 'tensorflow') {
-                    await eval(`(async () => { ${code} })()`);
-                    out.innerText = "TF.js Model/Operation Executed.";
+                    monitor.classList.remove('hidden');
+                    await runTensorFlow(code, log, id, cell);
                 } else {
-                    // Julia & R Gateway
-                    setTimeout(() => {
-                        out.innerHTML = `<span style="color:var(--text-dim)">[Gateway] Sending to ${lang.toUpperCase()} Cloud Kernel...</span><br>Status: Connection pending. (Simulation: Syntax Valid)`;
-                    }, 600);
+                    await runJavaScript(code, log);
                 }
-            } catch (e) {
-                out.innerHTML = `<span style="color:#ff4b2b">Runtime Error: ${e.message}</span>`;
+                if (!log.textContent.includes('Error')) log.innerHTML += '<span class="log-success">\n✓ Complete</span>';
+            } catch (err) {
+                cell.classList.add('error');
+                log.innerHTML = `<span class="log-error">✗ ${err.message || err}</span>`;
+                showToast('Execution error', 'error');
+            } finally {
+                btn.classList.remove('loading');
+                cell.classList.remove('running');
+                updateStatus('Ready');
+                updateMemory();
             }
         }
 
-        function addCell() {
-            const div = document.createElement('div');
-            div.className = 'cell';
-            div.dataset.lang = 'python';
-            div.innerHTML = `
-                <div class="cell-head">
-                    <div class="kernel-chip" onclick="switchKernel(this)">Python 3.11</div>
-                    <button class="run-btn" onclick="execute(this)"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
-                </div>
-                <div class="editor" contenteditable="true" spellcheck="false"># New Cell</div>
-                <div class="output"></div>
-            `;
-            document.getElementById('stack').appendChild(div);
+        async function runPython(code, logEl, cell) {
+            if (!state.pyodide) throw new Error('Pyodide not ready');
+            const result = await state.pyodide.runPythonAsync(`
+                import sys, io, traceback
+                old_out, old_err = sys.stdout, sys.stderr
+                sys.stdout = io.StringIO(); sys.stderr = io.StringIO()
+                try:
+                    ${code}
+                except Exception as e:
+                    traceback.print_exc()
+                out, err = sys.stdout.getvalue(), sys.stderr.getvalue()
+                sys.stdout, sys.stderr = old_out, old_err
+                (out, err)
+            `);
+            const [stdout, stderr] = result.toJs();
+            let html = '';
+            if (stdout) html += formatOutput(stdout, 'info');
+            if (stderr) html += formatOutput(stderr, 'error');
+            logEl.innerHTML = html || '<span class="log-info">(no output)</span>';
+        }
+
+        async function runTensorFlow(code, logEl, cellId, cell) {
+            if (!state.tfReady) throw new Error('TensorFlow.js not loaded');
+            const monitorScope = {
+                updateMonitor: (epoch, loss) => {
+                    const epochEl = cell.querySelector('.epoch-val');
+                    const lossEl = cell.querySelector('.loss-val');
+                    const progress = cell.querySelector('.progress-fill');
+                    if (epochEl) epochEl.textContent = epoch + 1;
+                    if (lossEl) lossEl.textContent = loss?.toFixed?.(5) ?? loss;
+                    if (progress) progress.style.width = `${Math.min(100, (epoch + 1) * 2)}%`;
+                }
+            };
+            const wrapped = `(async () => {
+                try {
+                    ${code}
+                } catch (e) {
+                    console.error('TF Error:', e.message);
+                    throw e;
+                }
+            })()`;
+            const originalUpdate = window.updateMonitor;
+            window.updateMonitor = monitorScope.updateMonitor;
+            await eval(wrapped);
+            window.updateMonitor = originalUpdate;
+            logEl.innerHTML += '<span class="log-ai">\n🤖 Training complete</span>';
+        }
+
+        async function runJavaScript(code, logEl) {
+            const logs = [];
+            const originalConsole = { ...console };
+            ['log','info','warn','error'].forEach(level => {
+                console[level] = (...args) => {
+                    logs.push({ level, args: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ') });
+                    originalConsole[level](...args);
+                };
+            });
+            try {
+                const result = await eval(`(async () => { ${code} })()`);
+                logs.forEach(({ level, args }) => {
+                    logEl.innerHTML += formatOutput(args, level);
+                });
+                if (result !== undefined) logEl.innerHTML += formatOutput(String(result), 'info');
+            } finally {
+                Object.assign(console, originalConsole);
+            }
+        }
+
+        function formatOutput(text, level = 'info') {
+            const cls = level === 'error' ? 'log-error' : level === 'warn' ? 'log-warning' : level === 'ai' ? 'log-ai' : 'log-info';
+            return `<span class="${cls}">${escapeHtml(text)}</span><br>`;
+        }
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+        }
+
+        function saveNotebook() {
+            const cells = Array.from(document.querySelectorAll('.cell')).map(c => ({
+                id: c.dataset.id, lang: c.dataset.lang, code: c.querySelector('.editor').textContent
+            }));
+            localStorage.setItem('orolabs-notebook', JSON.stringify({ cells, theme: state.theme }));
+        }
+        function loadNotebook() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('orolabs-notebook') || '{}');
+                if (saved.cells?.length) {
+                    saved.cells.forEach(c => addCell(c.lang, c.code));
+                    showToast('Notebook restored');
+                }
+                if (saved.theme) applyTheme(saved.theme);
+            } catch (e) { console.warn('Load failed:', e); }
+        }
+        function exportNotebook() {
+            const data = {
+                meta: { app: 'OroLabs Codebooks', version: '3.0', exported: new Date().toISOString() },
+                cells: Array.from(document.querySelectorAll('.cell')).map(c => ({
+                    language: c.dataset.lang, code: c.querySelector('.editor').textContent
+                }))
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `orolabs-notebook-${Date.now()}.json`;
+            a.click(); URL.revokeObjectURL(url);
+            showToast('Exported ✓', 'success');
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 200); }, 2500);
+        }
+        function updateStatus(text) { document.getElementById('status-text').textContent = text; }
+        function updateMemory() {
+            if (performance.memory) {
+                const used = Math.round(performance.memory.usedJSHeapSize / 1048576);
+                const total = Math.round(performance.memory.jsHeapSizeLimit / 1048576);
+                document.getElementById('memory-indicator').textContent = `Memory: ${used}/${total} MB`;
+            }
         }
     </script>
 </body>
